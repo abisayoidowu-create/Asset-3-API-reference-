@@ -1,0 +1,298 @@
+make-affidavits API Reference
+
+A comprehensive API specification for creating, managing, and validating affidavit drafts.
+
+Overview
+
+The make-affidavits API is designed to help applications create structured affidavit drafts, validate required information, retrieve existing drafts, and manage supporting exhibit details.
+
+Base URL: https://api.example.com/v1
+
+Content-Type: application/json
+
+Authentication
+
+Authentication requirements depend on the implementation. If authentication is enabled, include the required credentials in the request headers.
+
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+
+Endpoints
+
+|Method|Endpoint              |Description                   |
+|------|----------------------|------------------------------|
+|POST  |`/affidavits`         |Create an affidavit draft     |
+|GET   |`/affidavits/{id}`    |Retrieve an affidavit draft   |
+|PUT   |`/affidavits/{id}`    |Update an affidavit draft     |
+|DELETE|`/affidavits/{id}`    |Delete an affidavit draft     |
+|POST  |`/affidavits/validate`|Validate affidavit information|
+
+These endpoints describe the proposed API and must be implemented before they can be used.
+
+────────
+
+1. Create an Affidavit
+
+Creates an affidavit draft using the supplied court details, deponent information, facts, and optional exhibits.
+
+Endpoint: POST /affidavits
+
+Request body
+
+{
+  "court": {
+    "name": "High Court of Lagos State",
+    "division": "Ikeja Judicial Division",
+    "location": "Ikeja",
+    "suitNumber": "LD/123/2026"
+  },
+  "parties": {
+    "claimant": "Jane Doe",
+    "defendant": "John Smith"
+  },
+  "purpose": "Proof of residence",
+  "deponent": {
+    "fullName": "Jane Doe",
+    "occupation": "Teacher",
+    "nationality": "Nigerian",
+    "address": "Lagos, Nigeria",
+    "capacity": "Claimant"
+  },
+  "facts": [
+    "I am the claimant in this matter.",
+    "I reside at the address stated above."
+  ],
+  "exhibits": [
+    {
+      "mark": "A",
+      "description": "Proof of residence document"
+    }
+  ],
+  "jurat": {
+    "location": "Ikeja",
+    "date": "2026-10-17"
+  }
+}
+
+Successful response
+
+Status: 201 Created
+
+{
+  "id": "aff-001",
+  "status": "draft",
+  "message": "Affidavit draft created successfully."
+}
+
+────────
+
+2. Retrieve an Affidavit
+
+Retrieves a previously created affidavit draft by its unique identifier.
+
+Endpoint: GET /affidavits/{id}
+
+Path parameters
+
+|Parameter|Type  |Required|Description                |
+|---------|------|--------|---------------------------|
+|`id`     |string|Yes     |Unique affidavit identifier|
+
+Example request
+
+GET /affidavits/aff-001
+
+Successful response
+
+Status: 200 OK
+
+{
+  "id": "aff-001",
+  "purpose": "Proof of residence",
+  "status": "draft",
+  "deponent": {
+    "fullName": "Jane Doe",
+    "occupation": "Teacher",
+    "nationality": "Nigerian",
+    "address": "Lagos, Nigeria",
+    "capacity": "Claimant"
+  },
+  "facts": [
+    "I am the claimant in this matter.",
+    "I reside at the address stated above."
+  ]
+}
+
+────────
+
+3. Update an Affidavit
+
+Updates an existing affidavit draft.
+
+Endpoint: PUT /affidavits/{id}
+
+Path parameters
+
+|Parameter|Type  |Required|Description                |
+|---------|------|--------|---------------------------|
+|`id`     |string|Yes     |Unique affidavit identifier|
+
+Request body
+
+Supply the updated affidavit data according to the schema used by the API.
+
+{
+  "purpose": "Confirmation of residence",
+  "facts": [
+    "I am the claimant in this matter.",
+    "I currently reside at the address stated in this affidavit."
+  ]
+}
+
+Successful response
+
+Status: 200 OK
+
+{
+  "id": "aff-001",
+  "status": "updated",
+  "message": "Affidavit draft updated successfully."
+}
+
+────────
+
+4. Delete an Affidavit
+
+Deletes an existing affidavit draft.
+
+Endpoint: DELETE /affidavits/{id}
+
+Path parameters
+
+|Parameter|Type  |Required|Description                |
+|---------|------|--------|---------------------------|
+|`id`     |string|Yes     |Unique affidavit identifier|
+
+Successful response
+
+Status: 204 No Content
+
+No response body is returned.
+
+────────
+
+5. Validate Affidavit Information
+
+Checks whether the supplied information contains the required fields for an affidavit draft.
+
+Endpoint: POST /affidavits/validate
+
+Request body
+
+{
+  "deponent": {
+    "fullName": "Jane Doe",
+    "occupation": "Teacher",
+    "nationality": "Nigerian",
+    "address": "Lagos, Nigeria",
+    "capacity": "Claimant"
+  },
+  "purpose": "Proof of residence",
+  "facts": [
+    "I reside at the address stated in this affidavit."
+  ]
+}
+
+Successful response
+
+Status: 200 OK
+
+{
+  "valid": true,
+  "errors": []
+}
+
+Validation failure response
+
+{
+  "valid": false,
+  "errors": [
+    {
+      "field": "deponent.fullName",
+      "message": "Full name is required."
+    }
+  ]
+}
+
+The validation rules must be defined by the implementation and adapted to the applicable court requirements.
+
+────────
+
+Data Models
+
+Deponent
+
+|Field        |Type  |Required|
+|-------------|------|--------|
+|`fullName`   |string|Yes     |
+|`occupation` |string|Yes     |
+|`nationality`|string|Yes     |
+|`address`    |string|Yes     |
+|`capacity`   |string|Yes     |
+
+Court
+
+|Field       |Type  |Required     |
+|------------|------|-------------|
+|`name`      |string|Yes          |
+|`division`  |string|As applicable|
+|`location`  |string|Yes          |
+|`suitNumber`|string|As applicable|
+
+Fact
+
+Each fact is represented as a string in an ordered array. Facts should be relevant, clear, concise, and appropriately based on the deponent’s knowledge.
+
+Exhibit
+
+|Field        |Type  |Required                        |
+|-------------|------|--------------------------------|
+|`mark`       |string|Yes, when an exhibit is included|
+|`description`|string|Yes                             |
+
+The exhibit metadata describes supporting documents. Actual document uploads require additional implementation.
+
+Jurat
+
+|Field     |Type  |Required                                     |
+|----------|------|---------------------------------------------|
+|`location`|string|Yes                                          |
+|`date`    |string|Yes; use `YYYY-MM-DD` in this proposed schema|
+
+The jurat must be adapted to the applicable legal and procedural requirements.
+
+────────
+
+HTTP Status Codes
+
+|Status code                |Meaning                                                      |
+|---------------------------|-------------------------------------------------------------|
+|`200 OK`                   |Request completed successfully                               |
+|`201 Created`              |Resource created successfully                                |
+|`204 No Content`           |Request succeeded without a response body                    |
+|`400 Bad Request`          |Invalid request data                                         |
+|`401 Unauthorized`         |Authentication is missing or invalid, if required            |
+|`403 Forbidden`            |Request is not permitted                                     |
+|`404 Not Found`            |Requested resource does not exist                            |
+|`409 Conflict`             |Request conflicts with the current resource state            |
+|`422 Unprocessable Content`|Request data failed validation, if used by the implementation|
+|`500 Internal Server Error`|Unexpected server error                                      |
+
+General Error Response
+
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "The request contains invalid information."
+  }
+}
